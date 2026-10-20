@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "env-drift-sentinel"
+version = "0.1.0"
+description = "Detect configuration drift between environments"
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = []
+
+[project.scripts]
+env-drift-sentinel = "env_drift_sentinel:main"
+
+[tool.setuptools]
+py-modules = ["env_drift_sentinel"]
