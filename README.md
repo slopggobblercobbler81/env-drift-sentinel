@@ -42,3 +42,6 @@ python env_drift_sentinel.py --example .env.example --target .env --strict --rep
 - Strict mode support for CI/CD pipelines
 - JSON and Markdown reports
 >>>>>>> 377ffc359f9f74cb82e0a5c3a225e921395495cc
+
+
+Documentation update for release.
