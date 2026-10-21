@@ -2,152 +2,8 @@ import os
 import re
 import sys
 import argparse
-<<<<<<< HEAD
-from typing import Dict, Any, List, Tuple
-
-def parse_env_file(filepath: str) -> Dict[str, str]:
-    env_vars = {}
-    if not os.path.exists(filepath):
-        return env_vars
-    with open(filepath, 'r', encoding='utf-8') as f:
-        for line in f:
-            line = line.strip()
-            if not line or line.startswith('#'):
-                continue
-            if '=' in line:
-                key, val = line.split('=', 1)
-                key = key.strip()
-                val = val.strip()
-                if (val.startswith('"') and val.endswith('"')) or (val.startswith("'") and val.endswith("'")):
-                    val = val[1:-1]
-                env_vars[key] = val
-    return env_vars
-
-def infer_type(val: str) -> str:
-    if val.lower() in ('true', 'false', 'yes', 'no', '1', '0'):
-        return 'boolean'
-    try:
-        int(val)
-        return 'integer'
-    except ValueError:
-        pass
-    try:
-        float(val)
-        return 'float'
-    except ValueError:
-        pass
-    if re.match(r'^https?://', val, re.IGNORECASE):
-        return 'url'
-    if re.match(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$', val):
-        return 'email'
-    return 'string'
-
-def compare_environments(base_env: Dict[str, str], target_env: Dict[str, str], target_name: str) -> Dict[str, Any]:
-    base_keys = set(base_env.keys())
-    target_keys = set(target_env.keys())
-
-    missing = sorted(list(base_keys - target_keys))
-    unexpected = sorted(list(target_keys - base_keys))
-    common = base_keys.intersection(target_keys)
-
-    format_discrepancies = []
-    value_mismatches = []
-
-    for k in sorted(list(common)):
-        b_val = base_env[k]
-        t_val = target_env[k]
-        b_type = infer_type(b_val)
-        t_type = infer_type(t_val)
-
-        if b_type != t_type:
-            format_discrepancies.append({
-                "key": k,
-                "base_value": b_val,
-                "base_type": b_type,
-                "target_value": t_val,
-                "target_type": t_type
-            })
-        elif b_val != t_val:
-            value_mismatches.append({
-                "key": k,
-                "base_value": b_val,
-                "target_value": t_val
-            })
-
-    return {
-        "target": target_name,
-        "missing_variables": missing,
-        "unexpected_variables": unexpected,
-        "format_discrepancies": format_discrepancies,
-        "value_mismatches": value_mismatches
-    }
-
-def main():
-    parser = argparse.ArgumentParser(description="Detect configuration drift between environment files.")
-    parser.add_argument("--base", required=True, help="Base environment file (e.g., production.env)")
-    parser.add_argument("--target", required=True, action='append', help="Target environment file to compare, format name=filepath (e.g., staging=staging.env)")
-    parser.add_argument("--format", choices=["text", "json"], default="text", help="Output format")
-
-    args = parser.parse_args()
-
-    base_env = parse_env_file(args.base)
-    if not base_env and not os.path.exists(args.base):
-        print(f"Error: Base environment file '{args.base}' not found.", file=sys.stderr)
-        sys.exit(1)
-
-    results = []
-    for t_arg in args.target:
-        if "=" not in t_arg:
-            print(f"Error: Target format must be name=filepath, got '{t_arg}'", file=sys.stderr)
-            sys.exit(1)
-        name, filepath = t_arg.split("=", 1)
-        target_env = parse_env_file(filepath)
-        if not target_env and not os.path.exists(filepath):
-            print(f"Error: Target environment file '{filepath}' not found.", file=sys.stderr)
-            sys.exit(1)
-        
-        res = compare_environments(base_env, target_env, name)
-        results.append(res)
-
-    if args.format == "json":
-        import json
-        print(json.dumps(results, indent=2))
-    else:
-        has_drift = False
-        for res in results:
-            print(f"=== Drift Analysis for: {res['target']} ===")
-            if not res['missing_variables'] and not res['unexpected_variables'] and not res['format_discrepancies'] and not res['value_mismatches']:
-                print("  No drift detected! Environments are fully synchronized.\n")
-                continue
-            
-            has_drift = True
-            if res['missing_variables']:
-                print("  Missing Variables (present in base, absent in target):")
-                for m in res['missing_variables']:
-                    print(f"    - {m}")
-            
-            if res['unexpected_variables']:
-                print("  Unexpected Variables (present in target, absent in base):")
-                for u in res['unexpected_variables']:
-                    print(f"    - {u}")
-
-            if res['format_discrepancies']:
-                print("  Format Discrepancies (type mismatch):")
-                for f in res['format_discrepancies']:
-                    print(f"    - {f['key']}: base type '{f['base_type']}' ({f['base_value']}) vs target type '{f['target_type']}' ({f['target_value']})")
-
-            if res['value_mismatches']:
-                print("  Value Mismatches:")
-                for v in res['value_mismatches']:
-                    print(f"    - {v['key']}: base '{v['base_value']}' vs target '{v['target_value']}'")
-            print()
-
-        if has_drift:
-            sys.exit(2)
-
-if __name__ == '__main__':
-=======
 import json
+from typing import Dict, Any, List, Tuple
 
 # Heuristics for potential secret leakage
 SECRET_PATTERNS = [
@@ -176,6 +32,72 @@ def parse_env_file(path):
                 val = val[1:-1]
             keys[key] = (val, line_num)
     return keys
+
+def infer_type(val: str) -> str:
+    if val.lower() in ('true', 'false', 'yes', 'no', '1', '0'):
+        return 'boolean'
+    try:
+        int(val)
+        return 'integer'
+    except ValueError:
+        pass
+    try:
+        float(val)
+        return 'float'
+    except ValueError:
+        pass
+    if re.match(r'^https?://', val, re.IGNORECASE):
+        return 'url'
+    if re.match(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$', val):
+        return 'email'
+    return 'string'
+
+def compare_environments(base_env: Dict[str, Any], target_env: Dict[str, Any], target_name: str) -> Dict[str, Any]:
+    # Handle both tuple values (val, line_num) and raw strings
+    def clean_val(v):
+        return v[0] if isinstance(v, tuple) else v
+
+    base_cleaned = {k: clean_val(v) for k, v in base_env.items()}
+    target_cleaned = {k: clean_val(v) for k, v in target_env.items()}
+
+    base_keys = set(base_cleaned.keys())
+    target_keys = set(target_cleaned.keys())
+
+    missing = sorted(list(base_keys - target_keys))
+    unexpected = sorted(list(target_keys - base_keys))
+    common = base_keys.intersection(target_keys)
+
+    format_discrepancies = []
+    value_mismatches = []
+
+    for k in sorted(list(common)):
+        b_val = base_cleaned[k]
+        t_val = target_cleaned[k]
+        b_type = infer_type(b_val)
+        t_type = infer_type(t_val)
+
+        if b_type != t_type:
+            format_discrepancies.append({
+                "key": k,
+                "base_value": b_val,
+                "base_type": b_type,
+                "target_value": t_val,
+                "target_type": t_type
+            })
+        elif b_val != t_val:
+            value_mismatches.append({
+                "key": k,
+                "base_value": b_val,
+                "target_value": t_val
+            })
+
+    return {
+        "target": target_name,
+        "missing_variables": missing,
+        "unexpected_variables": unexpected,
+        "format_discrepancies": format_discrepancies,
+        "value_mismatches": value_mismatches
+    }
 
 def check_secrets(key, val):
     issues = []
@@ -269,5 +191,4 @@ def main():
         sys.exit(1)
 
 if __name__ == "__main__":
->>>>>>> 377ffc359f9f74cb82e0a5c3a225e921395495cc
     main()

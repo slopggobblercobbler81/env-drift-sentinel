@@ -20,9 +20,9 @@ def test_parse_env_file(tmp_path):
     
     parsed = parse_env_file(str(p))
     assert parsed == {
-        "KEY1": "value1",
-        "KEY2": "quoted",
-        "KEY3": "123"
+        "KEY1": ("value1", 2),
+        "KEY2": ("quoted", 3),
+        "KEY3": ("123", 5)
     }
 
 def test_compare_environments():
